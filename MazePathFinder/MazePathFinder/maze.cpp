@@ -1,4 +1,6 @@
 #include "maze.h"
+#include <tuple>
+#include <iomanip>
 
 // Constructor
 Maze::Maze(int row, int col)
@@ -27,15 +29,33 @@ void Maze::show_maze()
 		for (int j = 0; j < max_col; j++)
 		{
 			if (edge(i, j) == INF)
-				cout << "■  ";
+			{
+				cout.setf(ios::left);
+				cout << setw(4) << "-";
+			}
 			else if (Point(i, j) == user)
-				cout << "S" << edge(i, j) <<" ";
+			{
+				cout << "S";
+				cout.setf(ios::left);
+				cout << setw(3) << edge(i, j);
+			}
 			else if (Point(i, j) == box)
-				cout << "B" << edge(i, j) << " ";
+			{
+				cout << "B";
+				cout.setf(ios::left);
+				cout << setw(3) << edge(i, j);
+			}
 			else if (Point(i, j) == target)
-				cout << "T" << edge(i, j) << " ";
+			{
+				cout << "T";
+				cout.setf(ios::left);
+				cout << setw(3) << edge(i, j);
+			}
 			else
-				cout << edge(i, j) << "  ";
+			{
+				cout.setf(ios::left);
+				cout << setw(4) << edge(i, j);
+			}
 		}
 		cout << endl;
 	}
@@ -83,30 +103,203 @@ void Maze::make_maze()
 }
 
 // BFS maze box
-void Maze::bfs()
+void Maze::bfs(Point start, Point end)
 {
+	bool found = false;
 	Point cur_pos;
 	int cur_row, cur_col;
-	q.enqueue(box);
-	visit(box.row, box.col);
-	while (!q.empty())
+	queue.clear();
+	queue.enqueue(start);
+	visit(start.row, start.col);
+	while (!queue.empty() && !found)
 	{ 
-		cur_pos = q.dequeue();
-		/**
-		if (Point(cur_pos.row, cur_pos.col) == target)
-			break;
-		**/
+		cur_pos = queue.dequeue();
+		if (Point(cur_pos.row, cur_pos.col) == end)
+		{
+			found = true;
+			continue;
+		}
 		for (int i = 0; i < 4; i++)
 		{
 			cur_row = cur_pos.row + direct[i][0];
 			cur_col = cur_pos.col + direct[i][1];
 			if (check(cur_row, cur_col) && is_path(cur_row, cur_col) && !is_visit(cur_row, cur_col))
 			{
-				q.enqueue(Point(cur_row, cur_col));
+				queue.enqueue(Point(cur_row, cur_col));
 				edge(cur_row, cur_col) += edge(cur_pos.row, cur_pos.col);
 				visit(cur_row, cur_col);
 			}
 		}
+	}
+	init_mark();	// initialize visitd
+}
+
+// BFS maze box
+void Maze::user_bfs(Point start, Point end)
+{
+	bool found = false;
+	Point cur_pos;
+	int cur_row, cur_col;
+	queue.clear();
+	queue.enqueue(start);
+	visit(start.row, start.col);
+	while (!queue.empty() && !found)
+	{
+		cur_pos = queue.dequeue();
+		if (Point(cur_pos.row, cur_pos.col) == end)
+		{
+			found = true;
+			continue;
+		}
+		for (int i = 0; i < 4; i++)
+		{
+			cur_row = cur_pos.row + direct[i][0];
+			cur_col = cur_pos.col + direct[i][1];
+			if (check(cur_row, cur_col) && is_path(cur_row, cur_col) && !is_visit(cur_row, cur_col))
+			{
+				Point temp = Point(cur_row, cur_col);
+				if (temp != box)
+				{
+					queue.enqueue(temp);
+					edge(cur_row, cur_col) += edge(cur_pos.row, cur_pos.col);
+					visit(cur_row, cur_col);
+				}
+			}
+		}
+	}
+	init_mark();	// initialize visitd
+}
+
+// backtrace
+void Maze::backtrace(Point start, Point end)
+{
+	Point cur_pos = end;
+	int next_row, next_col;
+	int cur_weight;
+	bool flag;
+	stack.push(end);
+
+	while (cur_pos != start)
+	{
+		cur_weight = edge(cur_pos.row, cur_pos.col);
+		flag = false;
+
+		for (int i = 0; (i < 4 && !flag); i++)	// 사방탐색
+		{
+			next_row = cur_pos.row + direct[i][0];
+			next_col = cur_pos.col + direct[i][1];
+			if (check(next_row, next_col) && is_path(next_row, next_col)
+				&& (cur_weight - 1 == edge(next_row, next_col))) // cur_weight보다 next_weight이 1 작을 때
+			{
+					cur_pos = Point(next_row, next_col);
+					stack.push(cur_pos);
+					flag = true;
+			}
+		}
+	}
+	init_adjMatrix();
+	/**
+	// Only for Debugging
+	while (!stack.empty())
+	{
+		Point p = stack.pop();
+		cout << "(" << p.row << "," << p.col << ") ";
+	}
+	**/
+}
+
+
+// user backtrace
+void Maze::user_backtrace(Point start, Point end)
+{
+	Point cur_pos = end;
+	int next_row, next_col;
+	int cur_weight;
+	bool flag;
+	edge(box.row, box.col) = INF;
+	user_stack.push(end);
+	while (cur_pos != start)
+	{
+		cur_weight = edge(cur_pos.row, cur_pos.col);
+		flag = false;
+
+		for (int i = 0; (i < 4 && !flag); i++)	// 사방탐색
+		{
+			next_row = cur_pos.row + direct[i][0];
+			next_col = cur_pos.col + direct[i][1];
+			if (check(next_row, next_col) && is_path(next_row, next_col)
+				&& (cur_weight - 1 == edge(next_row, next_col))) // cur_weight보다 next_weight이 1 작을 때
+			{
+				cur_pos = Point(next_row, next_col);
+				if (cur_pos != box && cur_pos != start)
+				{
+					user_stack.push(cur_pos);
+					flag = true;
+				}
+			}
+		}
+	}
+	init_adjMatrix();
+	edge(box.row, box.col) = 1;
+	/**
+	// Only for Debugging
+	while (!user_stack.empty())
+	{
+		Point p = user_stack.pop();
+		cout << "(" << p.row << "," << p.col << ") ";
+	}
+	**/
+}
+
+void Maze::move()
+{
+	
+	bfs(box, target);
+	backtrace(box, target);
+
+	box = stack.pop();
+	Point next_pos;
+	Point target_pos;
+	Point box_back;
+
+	while (!stack.empty())
+	{
+		next_pos = stack.pop();
+		while ((box * 2 - user == next_pos) && !stack.empty())
+		{
+			cout << "[" << user.row << "," << user.col << "] ";
+			user = box;
+			box = next_pos;
+			next_pos = stack.pop();
+			if (box * 2 - user != next_pos)
+				cout << "[" << user.row << "," << user.col << "] ";				
+		}
+		edge(user.row, user.col) = 0;
+		target_pos = box * 2 - next_pos;
+		cout << "\n\nBefore BFS" << endl;
+		show_maze();
+		user_bfs(user, target_pos);
+		cout << "After BFS" << endl;
+		show_maze();
+		user_backtrace(user, target_pos);
+		edge(box.row, box.col) = 1;
+
+		// Only for Debugging
+		// print user_stack
+
+		target_pos = box * 2 - next_pos;
+		if (target_pos != next_pos)
+		{
+			while (!user_stack.empty())
+			{
+				Point p = user_stack.pop();
+				cout << "(" << p.row << "," << p.col << ") ";
+			}
+			user = box;
+			box = next_pos;
+		}
+		if (stack.empty())
+			cout << "[" << user.row << "," << user.col << "] ";
 	}
 }
 
@@ -116,6 +309,15 @@ void Maze::init_mark()
 	for (int i = 0; i < max_row; i++)
 		for (int j = 0; j < max_col; j++)
 			visited(i, j) = false;
+}
+
+// init adjMatrix as 1;
+void Maze::init_adjMatrix()
+{
+	for (int i = 0; i < max_row; i++)
+		for (int j = 0; j < max_col; j++)
+			if (edge(i, j) != INF)
+				edge(i, j) = 1;
 }
 
 // access to edge like 2D array

@@ -6,7 +6,9 @@
 #include <iostream>
 #include <utility>
 #include <string>
+#include <utility>
 
+#include "stackLnk.cpp"
 #include "queueLnk.cpp"
 
 using namespace std;
@@ -16,8 +18,8 @@ class Point
 private:
 	int row;
 	int col;
-	string obj;
 public:
+
 	// constructor
 	Point(int _row = INF, int _col = INF)
 		: row(_row), col(_col)
@@ -37,6 +39,24 @@ public:
 		return false;
 	}
 
+	bool operator!=(Point& ref)
+	{
+		if (row == ref.row && col == ref.col)
+			return false;
+		return true;
+
+	}
+
+	Point operator-(Point& ref)
+	{
+		return Point(row - ref.row, col - ref.col);
+	}
+
+	Point operator*(const int num)
+	{
+		return Point(num * row, num * col);
+	}
+
 	friend class Maze;
 };
 
@@ -49,22 +69,32 @@ public:
 	// Destructor
 	~Maze();
 
-	void init_mark();	// init mark as false
-	void make_maze();	// construct maze with user input
-	void bfs();		// breath first search
 
+	// special index
+	Point user;
+	Point target;
+	Point box;
+
+
+	void init_mark();	// init mark as false
+	void init_adjMatrix();
+	void make_maze();	// construct maze with user input
+	void bfs(Point start, Point end);		// breath first search
+	void user_bfs(Point start, Point end);		// breath first search
+	void backtrace(Point start, Point end);		// search shortest path
+	void user_backtrace(Point start, Point end);
+	void move();
 	void show_maze();	// show maze structure
 private:
 	int* adjMatrix;
 	bool* mark;
 	int max_row, max_col;
 
-	Queue<Point> q;
-
-	// special index
-	Point user;
-	Point target;
-	Point box;
+	Queue<Point> queue;
+	Stack<Point> user_queue;
+	Stack<Point> stack;
+	Stack<Point> user_stack;
+	Queue<Point> final_path;
 
 	int direct[4][2] = { {1, 0}, {-1, 0}, {0, 1}, {0, -1} };
 

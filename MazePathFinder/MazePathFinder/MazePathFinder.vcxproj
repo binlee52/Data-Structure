@@ -141,10 +141,12 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="maze.cpp" />
     <ClCompile Include="queueLnk.cpp" />
+    <ClCompile Include="stackLnk.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="maze.h" />
     <ClInclude Include="queueLnk.h" />
+    <ClInclude Include="stackLnk.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -8,8 +8,8 @@ int main(void)
 	cout << "ROW/COL : ";
 	cin >> x >> y;
 	Maze maze(x, y);
-	maze.show_maze();
+	maze.move();
 
-	maze.bfs();
-	maze.show_maze();
+	// Only for Debuging
+	// TODO
 }
