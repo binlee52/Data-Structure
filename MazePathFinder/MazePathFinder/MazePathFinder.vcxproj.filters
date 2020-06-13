@@ -18,18 +18,18 @@
     <ClCompile Include="main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="wtgraph.cpp">
+    <ClCompile Include="maze.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="maze.cpp">
+    <ClCompile Include="queueLnk.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="wtgraph.h">
+    <ClInclude Include="maze.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="maze.h">
+    <ClInclude Include="queueLnk.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

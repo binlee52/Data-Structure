@@ -140,15 +140,11 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="maze.cpp" />
-    <ClCompile Include="wtgraph.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </ClCompile>
+    <ClCompile Include="queueLnk.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="maze.h" />
-    <ClInclude Include="wtgraph.h">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
-    </ClInclude>
+    <ClInclude Include="queueLnk.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
