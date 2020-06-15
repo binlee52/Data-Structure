@@ -1,69 +1,82 @@
 #include "maze.h"
-#include <tuple>
-#include <iomanip>
 
-// Constructor
+MazeVertex::MazeVertex(Point _box, Point _user, string _path, int _push, int _walk)
+/**
+	Constructor of MazeVertex Class
+**/
+	: box(_box), user(_user), path(_path), push_cnt(_push), walk_cnt(_walk)
+{}
+
+MazeVertex::MazeVertex(const MazeVertex& ref)
+/**
+	Copy Constructor of MazeVertex Class
+**/
+{
+	box = ref.box;
+	user = ref.user;
+	path = ref.path;
+	push_cnt = ref.push_cnt;
+	walk_cnt = ref.walk_cnt;
+}
+
+int MazeVertex::pty()
+/**
+	Return push_cnt. 
+	To give priority according to the number of push in the priority
+**/
+{
+	// maxheap을 사용하므로 minheap처럼 사용하기 위해 -1
+	return (-1) * push_cnt;
+}
+
+int MazeVertex::pty2()
+/**
+	Return walk_cnt. 
+	To compare priorities when pty() is the same in the priority queue.
+**/
+{
+	// maxheap을 사용하므로 minheap처럼 사용하기 위해 -1
+	return (-1) * walk_cnt;
+}
+
 Maze::Maze(int row, int col)
+/**
+	Constructor of Maze class
+**/
 {
 	max_row = row;
 	max_col = col;
-	adjMatrix = new int[max_row * max_col];
-	mark = new bool[max_row * max_col];	// TODO __int32()
-	make_maze();
-	init_mark();
-}
 
-// Destructor
-Maze::~Maze()
-{
-	delete[] adjMatrix;
-	delete[] mark;
-}
+	// init adjMatrix
+	adjMatrix = new char*[max_row];
+	for (int i = 0; i < max_row; i++)
+		adjMatrix[i] = new char[max_col];
+	create_maze();
 
-// show Maze
-void Maze::show_maze()
-{
-	cout << endl;
+	// init mark
+	mark = new bool***[max_row];
 	for (int i = 0; i < max_row; i++)
 	{
+		mark[i] = new bool**[max_col];
 		for (int j = 0; j < max_col; j++)
 		{
-			if (edge(i, j) == INF)
+			mark[i][j] = new bool*[max_row];
+			for (int k = 0; k < max_row; k++)
 			{
-				cout.setf(ios::left);
-				cout << setw(4) << "-";
-			}
-			else if (Point(i, j) == user)
-			{
-				cout << "S";
-				cout.setf(ios::left);
-				cout << setw(3) << edge(i, j);
-			}
-			else if (Point(i, j) == box)
-			{
-				cout << "B";
-				cout.setf(ios::left);
-				cout << setw(3) << edge(i, j);
-			}
-			else if (Point(i, j) == target)
-			{
-				cout << "T";
-				cout.setf(ios::left);
-				cout << setw(3) << edge(i, j);
-			}
-			else
-			{
-				cout.setf(ios::left);
-				cout << setw(4) << edge(i, j);
+				mark[i][j][k] = new bool[max_col];
 			}
 		}
-		cout << endl;
 	}
-	cout << endl;
+	init_mark();
+
+	// Space is wasted if not worst case, because it is implemented in an array.
+	q = new PtyQueue<MazeVertex>(3 * max_row * max_col);		// Queue for BFS
 }
 
-// make Maze with user's input
-void Maze::make_maze()
+void Maze::create_maze()
+/**
+	Create maze based on user input
+**/
 {
 	char input;
 	for (int i = 0; i < max_row; i++)
@@ -72,28 +85,28 @@ void Maze::make_maze()
 		{
 			cin >> input;
 			if (input == '#')
-				edge(i, j) = INF;
+				adjMatrix[i][j] = '#';
 			else if (input == '.')
-				edge(i, j) = 1;
+				adjMatrix[i][j] = '.';
 			else if (input == 's' || input == 'S')
 			{
-				edge(i, j) = USER;	// starting point
+				adjMatrix[i][j] = 'S';
 				user.set(i, j);
 			}
 			else if (input == 'T' || input == 't')
 			{
-				edge(i, j) = 1;
+				adjMatrix[i][j] = 'T';
 				target.set(i, j);
 			}
 			else if (input == 'b' || input == 'B')
 			{
-				edge(i, j) = BOX; // box point
+				adjMatrix[i][j] = 'B';
 				box.set(i, j);
 			}
 			else
 				// exception
 			{
-				cout << "Wrong Input \'" << input << "\'"<< endl;
+				cout << "Wrong Input \'" << input << "\'" << endl;
 				cout << "Game OFF" << endl;
 				exit(1);
 				system("pause");
@@ -102,269 +115,159 @@ void Maze::make_maze()
 	}
 }
 
-// BFS maze box
-void Maze::bfs(Point start, Point end)
-{
-	bool found = false;
-	Point cur_pos;
-	int cur_row, cur_col;
-	queue.clear();
-	queue.enqueue(start);
-	visit(start.row, start.col);
-	while (!queue.empty() && !found)
-	{ 
-		cur_pos = queue.dequeue();
-		if (Point(cur_pos.row, cur_pos.col) == end)
-		{
-			found = true;
-			continue;
-		}
-		for (int i = 0; i < 4; i++)
-		{
-			cur_row = cur_pos.row + direct[i][0];
-			cur_col = cur_pos.col + direct[i][1];
-			if (check(cur_row, cur_col) && is_path(cur_row, cur_col) && !is_visit(cur_row, cur_col))
-			{
-				queue.enqueue(Point(cur_row, cur_col));
-				edge(cur_row, cur_col) += edge(cur_pos.row, cur_pos.col);
-				visit(cur_row, cur_col);
-			}
-		}
-	}
-	init_mark();	// initialize visitd
-}
-
-// BFS maze box
-void Maze::user_bfs(Point start, Point end)
-{
-	bool found = false;
-	Point cur_pos;
-	int cur_row, cur_col;
-	queue.clear();
-	queue.enqueue(start);
-	visit(start.row, start.col);
-	while (!queue.empty() && !found)
-	{
-		cur_pos = queue.dequeue();
-		if (Point(cur_pos.row, cur_pos.col) == end)
-		{
-			found = true;
-			continue;
-		}
-		for (int i = 0; i < 4; i++)
-		{
-			cur_row = cur_pos.row + direct[i][0];
-			cur_col = cur_pos.col + direct[i][1];
-			if (check(cur_row, cur_col) && is_path(cur_row, cur_col) && !is_visit(cur_row, cur_col))
-			{
-				Point temp = Point(cur_row, cur_col);
-				if (temp != box)
-				{
-					queue.enqueue(temp);
-					edge(cur_row, cur_col) += edge(cur_pos.row, cur_pos.col);
-					visit(cur_row, cur_col);
-				}
-			}
-		}
-	}
-	init_mark();	// initialize visitd
-}
-
-// backtrace
-void Maze::backtrace(Point start, Point end)
-{
-	Point cur_pos = end;
-	int next_row, next_col;
-	int cur_weight;
-	bool flag;
-	stack.push(end);
-
-	while (cur_pos != start)
-	{
-		cur_weight = edge(cur_pos.row, cur_pos.col);
-		flag = false;
-
-		for (int i = 0; (i < 4 && !flag); i++)	// 사방탐색
-		{
-			next_row = cur_pos.row + direct[i][0];
-			next_col = cur_pos.col + direct[i][1];
-			if (check(next_row, next_col) && is_path(next_row, next_col)
-				&& (cur_weight - 1 == edge(next_row, next_col))) // cur_weight보다 next_weight이 1 작을 때
-			{
-					cur_pos = Point(next_row, next_col);
-					stack.push(cur_pos);
-					flag = true;
-			}
-		}
-	}
-	init_adjMatrix();
-	/**
-	// Only for Debugging
-	while (!stack.empty())
-	{
-		Point p = stack.pop();
-		cout << "(" << p.row << "," << p.col << ") ";
-	}
-	**/
-}
-
-
-// user backtrace
-void Maze::user_backtrace(Point start, Point end)
-{
-	Point cur_pos = end;
-	int next_row, next_col;
-	int cur_weight;
-	bool flag;
-	edge(box.row, box.col) = INF;
-	user_stack.push(end);
-	while (cur_pos != start)
-	{
-		cur_weight = edge(cur_pos.row, cur_pos.col);
-		flag = false;
-
-		for (int i = 0; (i < 4 && !flag); i++)	// 사방탐색
-		{
-			next_row = cur_pos.row + direct[i][0];
-			next_col = cur_pos.col + direct[i][1];
-			if (check(next_row, next_col) && is_path(next_row, next_col)
-				&& (cur_weight - 1 == edge(next_row, next_col))) // cur_weight보다 next_weight이 1 작을 때
-			{
-				cur_pos = Point(next_row, next_col);
-				if (cur_pos != box && cur_pos != start)
-				{
-					user_stack.push(cur_pos);
-					flag = true;
-				}
-			}
-		}
-	}
-	init_adjMatrix();
-	edge(box.row, box.col) = 1;
-	/**
-	// Only for Debugging
-	while (!user_stack.empty())
-	{
-		Point p = user_stack.pop();
-		cout << "(" << p.row << "," << p.col << ") ";
-	}
-	**/
-}
-
-void Maze::move()
-{
-	
-	bfs(box, target);
-	backtrace(box, target);
-
-	box = stack.pop();
-	Point next_pos;
-	Point target_pos;
-	Point box_back;
-
-	while (!stack.empty())
-	{
-		next_pos = stack.pop();
-		while ((box * 2 - user == next_pos) && !stack.empty())
-		{
-			cout << "[" << user.row << "," << user.col << "] ";
-			user = box;
-			box = next_pos;
-			next_pos = stack.pop();
-			if (box * 2 - user != next_pos)
-				cout << "[" << user.row << "," << user.col << "] ";				
-		}
-		edge(user.row, user.col) = 0;
-		target_pos = box * 2 - next_pos;
-		cout << "\n\nBefore BFS" << endl;
-		show_maze();
-		user_bfs(user, target_pos);
-		cout << "After BFS" << endl;
-		show_maze();
-		user_backtrace(user, target_pos);
-		edge(box.row, box.col) = 1;
-
-		// Only for Debugging
-		// print user_stack
-
-		target_pos = box * 2 - next_pos;
-		if (target_pos != next_pos)
-		{
-			while (!user_stack.empty())
-			{
-				Point p = user_stack.pop();
-				cout << "(" << p.row << "," << p.col << ") ";
-			}
-			user = box;
-			box = next_pos;
-		}
-		if (stack.empty())
-			cout << "[" << user.row << "," << user.col << "] ";
-	}
-}
-
-// init mark as false
 void Maze::init_mark()
+/**
+	Initializing visit status(mark).
+**/
 {
 	for (int i = 0; i < max_row; i++)
 		for (int j = 0; j < max_col; j++)
-			visited(i, j) = false;
+			for (int k = 0; k < max_row; k++)
+				for (int l = 0; l < max_col; l++)
+					mark[i][j][k][l] = false;
 }
 
-// init adjMatrix as 1;
-void Maze::init_adjMatrix()
+Maze::~Maze()
+/**
+	Destructor of Maze class.
+**/
+{
+	// deallocate adjMatrix(maze structure)
+	for (int i = 0; i < max_row; i++)
+		delete[] adjMatrix[i];
+	delete[] adjMatrix;
+
+	// deallocate mark(visited history)
+	for (int i = 0; i < max_row; i++)
+	{
+		for (int j = 0; j < max_col; j++)
+		{
+			for (int k = 0; k < max_row; k++)
+			{
+				delete[] mark[i][j][k];
+			}
+			delete[] mark[i][j];
+		}
+		delete[] mark[i];
+	}
+	delete[] mark;
+}
+
+// Only for debugging
+void Maze::show_maze()
 {
 	for (int i = 0; i < max_row; i++)
+	{
 		for (int j = 0; j < max_col; j++)
-			if (edge(i, j) != INF)
-				edge(i, j) = 1;
+		{
+			cout << adjMatrix[i][j];
+		}
+		cout << endl;
+	}
 }
 
-// access to edge like 2D array
-int& Maze::edge(int row, int col)
+bool Maze::check(Point pt) const
+/** 
+	Verify that the point is in range of matrix.
+	return true if in, or false.
+**/
 {
-	return adjMatrix[row * max_col + col];
-}
-
-// access to mark like 2D array
-bool& Maze::visited(int row, int col)
-{
-	return mark[row * max_col + col];
-}
-
-
-/*** check condition ***/
-// matrix range check
-bool Maze::check(int row, int col) const
-{
-	if (row >= 0 && row < max_row && col >= 0 && col < max_col)
+	if (pt.row >= 0 && pt.row < max_row && pt.col >= 0 && pt.col < max_col)
 		return true;
 	return false;
 }
 
-// path check
-bool Maze::is_path(int row, int col) const
+bool Maze::is_path(Point pt) const
+/**
+	check path.
+	return false if wall(#) else true
+**/
 {
-	if (adjMatrix[row * max_col + col] == INF)
+	if (adjMatrix[pt.row][pt.col] == '#')
 		return false;
 	return true;
 }
 
-// confirmation of visit
-bool Maze::is_visit(int row, int col) const
+bool Maze::is_visit(Point _box, Point _user) const
 {
-	if (check(row, col))
-		return mark[row * max_col + col];
-	else
+	return mark[_box.row][_box.col][_user.row][_user.col];
+}
+
+void Maze::visit(Point _box, Point _user)
+/**
+	Visit according to the relative location of the box and user
+**/
+{
+	mark[_box.row][_box.col][_user.row][_user.col] = true;
+}
+
+bool Maze::can_push(Point _box, Point _user_next) const
+/** 
+	Returns true if the following location of the user matches the box position.
+	If user is far from box, return false. 
+**/
+{
+	return _box == _user_next;
+}
+
+void Maze::bfs()
+/**
+	Calculate the shortest path using the BFS algorithm. 
+	If path is found, the path is printed out. 
+	If path is not found, the output is "impossible".
+**/
+{
+	MazeVertex cur_loc;
+	MazeVertex next_loc;
+	Point box_next;
+	Point user_next;
+	string path_next;
+	bool flag = true;
+
+	q->enqueue(MazeVertex(box, user));	// start
+
+	while (!q->isEmpty())
 	{
-		cout << "Func is_visit error (" << row << "," << col << ")" << endl;
-		exit(1);
+		cur_loc = q->dequeue();
+
+		// When the box arrived at the target,
+		if (cur_loc.box == target)
+		{
+			cout << cur_loc.path << endl;;
+			return;
+		}
+
+		// Exploring all directions(East, West, North, South)
+		for (int i = 0; i < 4; i++)
+		{
+			user_next = cur_loc.user + direct[i];
+			box_next = cur_loc.box + direct[i];
+
+			if (check(user_next) && is_path(user_next) && !is_visit(cur_loc.box, user_next))
+			{
+				// When the next position of the user is the box(if user can push the box)
+				if (can_push(cur_loc.box, user_next))
+				{
+					if (check(box_next) && is_path(box_next))
+					{
+						path_next = cur_loc.path + push_path[i];	// update path
+						next_loc = MazeVertex(box_next, user_next, path_next, cur_loc.push_cnt + 1, cur_loc.walk_cnt);
+						q->enqueue(next_loc);
+						visit(box_next, user_next);
+					}
+					// When the next position of the box is out of range or is a rock,
+					// do nothing.
+				}
+				// if user can not push the box
+				else
+				{
+					path_next = cur_loc.path + walk_path[i];	// update path
+					next_loc = MazeVertex(cur_loc.box, user_next, path_next, cur_loc.push_cnt, cur_loc.walk_cnt + 1);
+					q->enqueue(next_loc);
+					visit(cur_loc.box, user_next);
+				}
+			}
+		}
 	}
+	cout << "Impossible!" << endl;
 }
-
-void Maze::visit(int row, int col)
-{
-	if (check(row, col))
-		visited(row, col) = true;
-}
-

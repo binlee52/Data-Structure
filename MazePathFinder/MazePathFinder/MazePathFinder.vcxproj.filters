@@ -21,10 +21,13 @@
     <ClCompile Include="maze.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="queueLnk.cpp">
+    <ClCompile Include="heap.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="stackLnk.cpp">
+    <ClCompile Include="ptyqueue.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="point.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -32,10 +35,13 @@
     <ClInclude Include="maze.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="queueLnk.h">
+    <ClInclude Include="heap.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="stackLnk.h">
+    <ClInclude Include="ptyqueue.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="point.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
