@@ -1,0 +1,92 @@
+==============================
+총 비행기: 3대
+[Flight NO.0056]
+Reserved List: 
+Stand-by List : 
+------------------------------
+[Flight NO.0196]
+Reserved List: 
+Stand-by List : 
+------------------------------
+[Flight NO.1234]
+Reserved List: 
+Stand-by List : 
+------------------------------
+==============================
+==============================
+총 비행기: 3대
+[Flight NO.0056]
+From : Lafayette
+To : Detroit
+Capacity : 4명
+Reserved : 4명
+Stand-by  : 1명
+
+------------------------------
+[Flight NO.0196]
+From : Dayton
+To : Indianapolis
+Capacity : 3명
+Reserved : 3명
+
+------------------------------
+[Flight NO.1234]
+From : Chicago
+To : Baltimore
+Capacity : 6명
+Reserved : 1명
+
+------------------------------
+==============================
+[Flight NO.0056]
+Reserved List: Churchill Jones Sauvage Smith 
+Stand-by List : Hubbard 
+------------------------------
+[Customer Name: Smith]
+Reserved Flight: 
+[Flight NO.0056]
+From: Lafayette
+To  : Detroit
+Reservation: OK
+
+[Flight NO.0196]
+From: Dayton
+To  : Indianapolis
+Reservation: OK
+
+[Flight NO.1234]
+From: Chicago
+To  : Baltimore
+Reservation: OK
+
+------------------------------
+==============================
+총 비행기: 3대
+[Flight NO.0056]
+Reserved List: Hubbard Jones Sauvage Smith 
+Stand-by List : 
+------------------------------
+[Flight NO.0196]
+Reserved List: Hubbard Jones Smith 
+Stand-by List : Churchill Wiley 
+------------------------------
+[Flight NO.1234]
+Reserved List: Smith 
+Stand-by List : 
+------------------------------
+==============================
+[Flight NO.0196]
+Reserved List: Churchill Hubbard Jones 
+Stand-by List : Wiley 
+------------------------------
+==============================
+총 비행기: 2대
+[Flight NO.0056]
+Reserved List: Hubbard Jones Sauvage 
+Stand-by List : 
+------------------------------
+[Flight NO.1234]
+Reserved List: 
+Stand-by List : 
+------------------------------
+==============================
